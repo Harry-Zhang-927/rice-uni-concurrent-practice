@@ -67,21 +67,27 @@ public final class CoarseLists {
          * TODO Use a lock to protect against concurrent access.
          */
         @Override
-        synchronized boolean remove(final Integer object) {
-            Entry pred = this.head;
-            Entry curr = pred.next;
+         boolean remove(final Integer object) {
+            try {
+                reentrantLock1.lock();
+                Entry pred = this.head;
+                Entry curr = pred.next;
 
-            while (curr.object.compareTo(object) < 0) {
-                pred = curr;
-                curr = curr.next;
+                while (curr.object.compareTo(object) < 0) {
+                    pred = curr;
+                    curr = curr.next;
+                }
+
+                if (object.equals(curr.object)) {
+                    pred.next = curr.next;
+                    return true;
+                } else {
+                    return false;
+                }
+            } finally {
+                reentrantLock1.unlock();
             }
 
-            if (object.equals(curr.object)) {
-                pred.next = curr.next;
-                return true;
-            } else {
-                return false;
-            }
         }
 
         /**
@@ -90,15 +96,20 @@ public final class CoarseLists {
          * TODO Use a lock to protect against concurrent access.
          */
         @Override
-        synchronized boolean contains(final Integer object) {
-            Entry pred = this.head;
-            Entry curr = pred.next;
+         boolean contains(final Integer object) {
+            try {
+                reentrantLock1.lock();
+                Entry pred = this.head;
+                Entry curr = pred.next;
 
-            while (curr.object.compareTo(object) < 0) {
-                pred = curr;
-                curr = curr.next;
+                while (curr.object.compareTo(object) < 0) {
+                    pred = curr;
+                    curr = curr.next;
+                }
+                return object.equals(curr.object);
+            } finally {
+                reentrantLock1.unlock();
             }
-            return object.equals(curr.object);
         }
     }
 
