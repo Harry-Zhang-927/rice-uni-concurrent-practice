@@ -1,5 +1,8 @@
 package edu.coursera.concurrent;
 
+import java.util.concurrent.locks.ReentrantLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
+
 /**
  * Wrapper class for two lock-based concurrent list implementations.
  */
@@ -19,6 +22,7 @@ public final class CoarseLists {
          * TODO Declare a lock for this class to be used in implementing the
          * concurrent add, remove, and contains methods below.
          */
+        private final ReentrantLock reentrantLock1 = new ReentrantLock();
 
         /**
          * Default constructor.
@@ -34,21 +38,26 @@ public final class CoarseLists {
          */
         @Override
         boolean add(final Integer object) {
-            Entry pred = this.head;
-            Entry curr = pred.next;
+            try {
+                reentrantLock1.lock();
+                Entry pred = this.head;
+                Entry curr = pred.next;
 
-            while (curr.object.compareTo(object) < 0) {
-                pred = curr;
-                curr = curr.next;
-            }
+                while (curr.object.compareTo(object) < 0) {
+                    pred = curr;
+                    curr = curr.next;
+                }
 
-            if (object.equals(curr.object)) {
-                return false;
-            } else {
-                final Entry entry = new Entry(object);
-                entry.next = curr;
-                pred.next = entry;
-                return true;
+                if (object.equals(curr.object)) {
+                    return false;
+                } else {
+                    final Entry entry = new Entry(object);
+                    entry.next = curr;
+                    pred.next = entry;
+                    return true;
+                }
+            } finally {
+                reentrantLock1.unlock();
             }
         }
 
@@ -58,7 +67,7 @@ public final class CoarseLists {
          * TODO Use a lock to protect against concurrent access.
          */
         @Override
-        boolean remove(final Integer object) {
+        synchronized boolean remove(final Integer object) {
             Entry pred = this.head;
             Entry curr = pred.next;
 
@@ -81,7 +90,7 @@ public final class CoarseLists {
          * TODO Use a lock to protect against concurrent access.
          */
         @Override
-        boolean contains(final Integer object) {
+        synchronized boolean contains(final Integer object) {
             Entry pred = this.head;
             Entry curr = pred.next;
 
@@ -109,6 +118,7 @@ public final class CoarseLists {
          * TODO Declare a read-write lock for this class to be used in
          * implementing the concurrent add, remove, and contains methods below.
          */
+        private final ReentrantReadWriteLock reentrantReadWriteLock = new ReentrantReadWriteLock();
 
         /**
          * Default constructor.
@@ -124,22 +134,28 @@ public final class CoarseLists {
          */
         @Override
         boolean add(final Integer object) {
-            Entry pred = this.head;
-            Entry curr = pred.next;
+            try {
+                reentrantReadWriteLock.writeLock().lock();
+                Entry pred = this.head;
+                Entry curr = pred.next;
 
-            while (curr.object.compareTo(object) < 0) {
-                pred = curr;
-                curr = curr.next;
+                while (curr.object.compareTo(object) < 0) {
+                    pred = curr;
+                    curr = curr.next;
+                }
+
+                if (object.equals(curr.object)) {
+                    return false;
+                } else {
+                    final Entry entry = new Entry(object);
+                    entry.next = curr;
+                    pred.next = entry;
+                    return true;
+                }
+            } finally {
+                reentrantReadWriteLock.writeLock().unlock();
             }
 
-            if (object.equals(curr.object)) {
-                return false;
-            } else {
-                final Entry entry = new Entry(object);
-                entry.next = curr;
-                pred.next = entry;
-                return true;
-            }
         }
 
         /**
@@ -149,20 +165,26 @@ public final class CoarseLists {
          */
         @Override
         boolean remove(final Integer object) {
-            Entry pred = this.head;
-            Entry curr = pred.next;
+            try {
+                reentrantReadWriteLock.writeLock().lock();
+                Entry pred = this.head;
+                Entry curr = pred.next;
 
-            while (curr.object.compareTo(object) < 0) {
-                pred = curr;
-                curr = curr.next;
+                while (curr.object.compareTo(object) < 0) {
+                    pred = curr;
+                    curr = curr.next;
+                }
+
+                if (object.equals(curr.object)) {
+                    pred.next = curr.next;
+                    return true;
+                } else {
+                    return false;
+                }
+            } finally {
+                reentrantReadWriteLock.writeLock().unlock();
             }
 
-            if (object.equals(curr.object)) {
-                pred.next = curr.next;
-                return true;
-            } else {
-                return false;
-            }
         }
 
         /**
@@ -172,14 +194,20 @@ public final class CoarseLists {
          */
         @Override
         boolean contains(final Integer object) {
-            Entry pred = this.head;
-            Entry curr = pred.next;
+            try {
+                reentrantReadWriteLock.readLock().lock();
+                Entry pred = this.head;
+                Entry curr = pred.next;
 
-            while (curr.object.compareTo(object) < 0) {
-                pred = curr;
-                curr = curr.next;
+                while (curr.object.compareTo(object) < 0) {
+                    pred = curr;
+                    curr = curr.next;
+                }
+                return object.equals(curr.object);
+            } finally {
+                reentrantReadWriteLock.readLock().unlock();
             }
-            return object.equals(curr.object);
+
         }
     }
 }
